@@ -1,51 +1,58 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Customer CRM</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-      body { font-family: Arial; padding: 20px; background: #f7f7f7; }
-      .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-      .name { font-weight: bold; }
-      .buttons a { margin-left: 10px; text-decoration: none; padding: 6px 10px; border-radius: 5px; color: white; font-size: 14px; }
-      .call { background-color: #28a745; }
-      .whatsapp { background-color: #25D366; }
-    </style>
-  </head>
-  <body>
-    <h2>📋 Customer CRM</h2>
-    <div id="list">Loading...</div>
-    <script>
-      const SHEET_ID = '1SarYnDPPke9ao2BB_nprgCMpafe_Xi_ksgJ52L0tVxc';
-      const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer CRM</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f7f7f7; margin:0; }
+    .card { background:white; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
+    .name { font-weight:bold; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:60%; }
+    .buttons a { margin-left:10px; padding:6px 10px; border-radius:5px; text-decoration:none; color:white; font-size:14px; }
+    .call { background-color:#28a745; }
+    .whatsapp { background-color:#25D366; }
+  </style>
+</head>
+<body>
+  <h2>📋 Customer CRM</h2>
+  <div id="list">Loading...</div>
+  <script>
+    const SHEET_ID = '1SarYnDPPke9ao2BB_nprgCMpafe_Xi_ksgJ52L0tVxc';
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-      fetch(URL)
-        .then(res => res.text())
-        .then(text => {
-          const json = JSON.parse(text.substr(47).slice(0, -2));
-          const cols = json.table.cols.map(col => col.label);
-          const rows = json.table.rows.map(row => row.c.map(cell => cell?.v || ''));
-          const nameIdx = cols.indexOf('Customer Name');
-          const phoneIdx = cols.indexOf('Mobile Number');
-          const waIdx = cols.indexOf('WhatsApp Number');
+    fetch(URL)
+      .then(r => r.text())
+      .then(res => {
+        const json = JSON.parse(res.substr(res.indexOf('{'), res.lastIndexOf('}')+1));
+        const cols = json.table.cols.map(c => c.label);
+        const rows = json.table.rows.map(r => r.c.map(c => c?.v || ''));
 
-          let html = '';
-          rows.forEach(r => {
-            const name = r[nameIdx];
-            const phone = r[phoneIdx];
-            const wa = r[waIdx] || phone;
-            if (name && phone) {
-              html += `<div class="card">
+        const nameIdx = cols.indexOf('Customer Name');
+        const phoneIdx = cols.indexOf('Mobile Number');
+        const waIdx = cols.indexOf('WhatsApp Number');
+
+        let html = '';
+        rows.forEach(r => {
+          const name = r[nameIdx];
+          const phone = r[phoneIdx];
+          const wa = r[waIdx] || phone;
+          if (name && phone) {
+            html += `
+              <div class="card">
                 <div class="name">${name}</div>
                 <div class="buttons">
                   <a class="call" href="tel:${phone}">📞 Call</a>
                   <a class="whatsapp" href="https://wa.me/${wa}" target="_blank">💬 WhatsApp</a>
                 </div>
               </div>`;
-            }
-          });
-          document.getElementById('list').innerHTML = html;
+          }
         });
-    </script>
-  </body>
+        document.getElementById('list').innerHTML = html;
+      })
+      .catch(e => {
+        console.error(e);
+        document.getElementById('list').textContent = 'Error loading data';
+      });
+  </script>
+</body>
 </html>
